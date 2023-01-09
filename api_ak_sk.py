@@ -7,8 +7,7 @@ import requests
 import argparse
 import json
 
-
-def call_wrapper(access_key, secret_key, method, uri, xdomainid, request_content_file):
+def call_wrapper(access_key, secret_key, method, uri, xdomainid, project, request_content_file):
     """
     Calls SberCloud.Advanced API and signs the request with AK/SK
     Inputs:
@@ -44,6 +43,11 @@ def call_wrapper(access_key, secret_key, method, uri, xdomainid, request_content
                             uri,
                             {"Content-Type": "application/json", "X-Domain-Id": xdomainid},
                             request_body)
+    elif project:
+        r = signer.HttpRequest(method,
+                            uri,
+                            {"Content-Type": "application/json", "X-Project-Id": project},
+                            request_body)
     else:
         r = signer.HttpRequest(method,
                             uri,
@@ -55,7 +59,7 @@ def call_wrapper(access_key, secret_key, method, uri, xdomainid, request_content
 
     # Execute request and print results
     resp = requests.request(r.method, r.scheme + "://" + r.host + r.uri, headers=r.headers, data=r.body)
-    print(resp.status_code)
+    #print(resp.status_code)
     resp.close()
     print(json.dumps(resp.json()))
 
@@ -67,7 +71,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Makes SberCloud.Advanced API call signed by AK and SK.')
     parser.add_argument("--uri", help="URI for the call. Includes cloud service endpoint and URI. May include Project ID for some calls", required=True)
     parser.add_argument("--method", help="REST method, see API description for your cloud service", required=True)
-    #parser.add_argument("--project", help="Project ID, you can find it in the management console", required=True)
+    parser.add_argument("--project", help="Project ID, you can find it in the management console, need for CCE and others")
     parser.add_argument("--ak", help="Access Key", required=True)
     parser.add_argument("--sk", help="Secret Key", required=True)
     parser.add_argument("--content", help="File with request content in JSON format, optional")
@@ -75,4 +79,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call main function, which does the job
-    call_wrapper(args.ak, args.sk, args.method, args.uri, args.xdomainid, args.content)
+    call_wrapper(args.ak, args.sk, args.method, args.uri, args.xdomainid, args.project, args.content)
+    
